@@ -41,16 +41,12 @@ sub unique {
     return $self->_lc->get_unique_ref();
 }
 
-has complement   => ( is => 'lazy' );
-
-sub _build_complement {
+sub complement {
     my $self = shift;
     return $self->_lc->get_complement_ref();
 }
 
-has intersection => ( is => 'lazy' );
-
-sub _build_intersection {
+sub intersection {
     my $self = shift;
     return $self->_lc->get_intersection_ref();
 }
