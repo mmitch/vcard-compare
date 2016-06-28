@@ -5,8 +5,8 @@ package vCard::AddressBook::Compare;
 
 use Moo;
 
-use MooX::Types::MooseLike::Base 'InstanceOf';
-
+use List::Compare;
+use MooX::Types::MooseLike::Base 'InstanceOf'; # TODO: check out Type::Tiny::Class
 use Scalar::Util 'blessed';
 
 has primary   => ( is => 'ro', required => 1, isa => InstanceOf['vCard::AddressBook'] );
@@ -27,25 +27,32 @@ sub BUILDARGS {
     return { @args };
 }
 
-has unique       => ( is => 'lazy' );
+has _lc => ( is => 'lazy' );
 
-sub _build_unique {
+sub _build__lc {
     my $self = shift;
-    return [];
+    return List::Compare->new('--unsorted', '--accelerated',
+			      $self->primary->vcards(),
+			      $self->secondary->vcards());
+}
+
+sub unique {
+    my $self = shift;
+    return $self->_lc->get_unique_ref();
 }
 
 has complement   => ( is => 'lazy' );
 
 sub _build_complement {
     my $self = shift;
-    return [];
+    return $self->_lc->get_complement_ref();
 }
 
 has intersection => ( is => 'lazy' );
 
 sub _build_intersection {
     my $self = shift;
-    return [];
+    return $self->_lc->get_intersection_ref();
 }
 
 1;
