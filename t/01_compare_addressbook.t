@@ -7,6 +7,10 @@ use Test::Exception;
 use vCard::AddressBook;
 use vCard::AddressBook::Compare;
 
+my $VCARD1 = get_vcard('one');
+my $VCARD2 = get_vcard('two');
+my $VCARD3 = get_vcard('three');
+
 subtest 'constructor typecheck' => sub {
     # given
     my $abL = { foo => 'bar' };
@@ -38,7 +42,7 @@ subtest 'compare addressbooks (1, 0)' => sub {
     my $abL = vCard::AddressBook->new;
     my $abR = vCard::AddressBook->new;
 
-    my $vcard = $abL->add_vcard();
+    add_vcard( $abL, $VCARD1 );
 
     my $cmp = new_ok( 'vCard::AddressBook::Compare', [ $abL, $abR ] );
 
@@ -48,7 +52,7 @@ subtest 'compare addressbooks (1, 0)' => sub {
     my $both  = $cmp->intersection;
 
     # then
-    is_deeply( $onlyL, [ "$vcard" ], 'unique list');
+    is_deeply( $onlyL, [ "$VCARD1" ], 'unique list');
     is_deeply( $onlyR, [], 'complement list');
     is_deeply( $both , [], 'intersection list');
 };
@@ -58,7 +62,7 @@ subtest 'compare addressbooks (0, 1)' => sub {
     my $abL = vCard::AddressBook->new;
     my $abR = vCard::AddressBook->new;
 
-    my $vcard = $abR->add_vcard();
+    add_vcard( $abR, $VCARD1 );
 
     my $cmp = new_ok( 'vCard::AddressBook::Compare', [ $abL, $abR ] );
 
@@ -69,7 +73,7 @@ subtest 'compare addressbooks (0, 1)' => sub {
 
     # then
     is_deeply( $onlyL, [], 'unique list');
-    is_deeply( $onlyR, [ "$vcard" ], 'complement list');
+    is_deeply( $onlyR, [ "$VCARD1" ], 'complement list');
     is_deeply( $both , [], 'intersection list');
 };
 
@@ -78,8 +82,8 @@ subtest 'compare addressbooks (1 != 1)' => sub {
     my $abL = vCard::AddressBook->new;
     my $abR = vCard::AddressBook->new;
 
-    my $vcardL = $abL->add_vcard();
-    my $vcardR = $abR->add_vcard();
+    add_vcard( $abL, $VCARD1 );
+    add_vcard( $abR, $VCARD2 );
 
     my $cmp = new_ok( 'vCard::AddressBook::Compare', [ $abL, $abR ] );
 
@@ -89,8 +93,8 @@ subtest 'compare addressbooks (1 != 1)' => sub {
     my $both  = $cmp->intersection;
 
     # then
-    is_deeply( $onlyL, [ "$vcardL" ], 'unique list');
-    is_deeply( $onlyR, [ "$vcardR" ], 'complement list');
+    is_deeply( $onlyL, [ "$VCARD1" ], 'unique list');
+    is_deeply( $onlyR, [ "$VCARD2" ], 'complement list');
     is_deeply( $both , [], 'intersection list');
 };
 
@@ -99,8 +103,8 @@ subtest 'compare addressbooks (1 == 1)' => sub {
     my $abL = vCard::AddressBook->new;
     my $abR = vCard::AddressBook->new;
 
-    my $vcard = $abL->add_vcard();
-    push @{ $abR->vcards() }, $vcard;
+    add_vcard( $abL, $VCARD1 );
+    add_vcard( $abR, $VCARD1 );
 
     my $cmp = new_ok( 'vCard::AddressBook::Compare', [ $abL, $abR ] );
 
@@ -112,7 +116,7 @@ subtest 'compare addressbooks (1 == 1)' => sub {
     # then
     is_deeply( $onlyL, [], 'unique list');
     is_deeply( $onlyR, [], 'complement list');
-    is_deeply( $both , [ "$vcard" ], 'intersection list');
+    is_deeply( $both , [ "$VCARD1" ], 'intersection list');
 };
 
 subtest 'compare addressbooks (2 /= 2)' => sub {
@@ -120,10 +124,10 @@ subtest 'compare addressbooks (2 /= 2)' => sub {
     my $abL = vCard::AddressBook->new;
     my $abR = vCard::AddressBook->new;
 
-    my $vcard = $abL->add_vcard();
-    push @{ $abR->vcards() }, $vcard;
-    my $vcardL = $abL->add_vcard();
-    my $vcardR = $abR->add_vcard();
+    add_vcard( $abL, $VCARD1 );
+    add_vcard( $abL, $VCARD2 );
+    add_vcard( $abR, $VCARD2 );
+    add_vcard( $abR, $VCARD3 );
 
     my $cmp = new_ok( 'vCard::AddressBook::Compare', [ $abL, $abR ] );
 
@@ -133,7 +137,23 @@ subtest 'compare addressbooks (2 /= 2)' => sub {
     my $both  = $cmp->intersection;
 
     # then
-    is_deeply( $onlyL, [ "$vcardL" ], 'unique list');
-    is_deeply( $onlyR, [ "$vcardR" ], 'complement list');
-    is_deeply( $both , [ "$vcard" ], 'intersection list');
+    is_deeply( $onlyL, [ "$VCARD1" ], 'unique list');
+    is_deeply( $onlyR, [ "$VCARD3" ], 'complement list');
+    is_deeply( $both , [ "$VCARD2" ], 'intersection list');
 };
+
+### helper methods
+
+sub get_vcard {
+    my ($name) = (@_);
+
+    my $vcard = vCard->new;
+    $vcard->full_name( $name );
+    return $vcard;
+}
+
+sub add_vcard {
+    my ($ab, $vcard) = (@_);
+
+    push @{ $ab->vcards }, $vcard;
+}
