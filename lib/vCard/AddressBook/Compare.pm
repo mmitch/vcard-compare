@@ -164,7 +164,7 @@ sub _id_from_vcard {
 sub _get_from_map {
     my $self = shift;
     my ($map, @keys) = (@_);
-    return [ map { exists $map->{$_} ? $map->{$_} : () } @keys ];
+    return [ map { $map->{$_} } @keys ];
 }
 
 # create a map of vcards from an AddressBook
