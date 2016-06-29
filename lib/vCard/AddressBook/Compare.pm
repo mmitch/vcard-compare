@@ -65,6 +65,8 @@ they are used as L</primary> and L</secondary> address book.  It's a
 short form of C<< new( primary => $primary, secondary => $secondary )
 >>
 
+=for Pod::Coverage BUILDARGS
+
 =cut
 
 sub BUILDARGS {
