@@ -14,8 +14,11 @@ install:
 
 # full author tests only once, smoke tests everywhere else
 script:
-  - if test $TRAVIS_PERL_VERSION = '5.22'; then cpanm --quiet --notest --skip-satisfied Pod::Coverage::TrustPod && dzil test; else dzil smoke; fi
+  - if test $TRAVIS_PERL_VERSION = '5.22'; then cpanm --quiet --notest --skip-satisfied Pod::Coverage::TrustPod && dzil test --keep; else dzil smoke; fi
 
-# run coverage on non-mongled, non-PodWeavered code or line numbers won't match
+# run coverage only once and on non-mongled, non-PodWeavered code or line numbers won't match
 after_success:
-  - test $TRAVIS_PERL_VERSION = '5.22' && cpanm --quiet --notest --skip-satisfied Devel::Cover Devel::Cover::Report::Codecov && cp .build/*/Makefile* . && cover -test -report codecov
+  - test $TRAVIS_PERL_VERSION = '5.22' # or exit
+  - cpanm --quiet --notest --skip-satisfied Devel::Cover Devel::Cover::Report::Codecov
+  - cp .build/*/Makefile* .
+  - cover -test -report codecov
